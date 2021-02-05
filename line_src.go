@@ -20,9 +20,10 @@ type LinesFromStdin struct {
 	index  uint32
 }
 
-func (source *LinesFromStdin) init(reader *bufio.Scanner) {
+func (source *LinesFromStdin) init(reader *bufio.Scanner) *LinesFromStdin {
 	source.reader = reader
 	source.index = 0
+	return source
 }
 
 func (source *LinesFromStdin) produce() (string, uint32, string, error) {
@@ -52,11 +53,12 @@ type LinesFromFiles struct {
 	index           uint32
 }
 
-func (source *LinesFromFiles) init(files []string) {
+func (source *LinesFromFiles) init(files []string) *LinesFromFiles {
 	source.files = files
 	source.emitFilename = len(files) > 1
 	source.currentFilename = ""
 	source.index = 0
+	return source
 }
 
 func (source *LinesFromFiles) produce() (string, uint32, string, error) {
