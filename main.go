@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"rsc.io/getopt"
 )
@@ -40,6 +41,15 @@ func parseArgs() Config {
 	config.pattern = flag.Args()[0]
 	config.files = append(config.files, flag.Args()[1:len(flag.Args())]...)
 
+	if len(config.files) > 0 {
+		var files []string
+		for _, item := range config.files {
+			matches, _ := filepath.Glob(item)
+			files = append(files, matches...)
+		}
+		config.files = files
+	}
+
 	return config
 }
 
@@ -56,7 +66,6 @@ func process(source LineSource) {
 		} else {
 			fmt.Println("Error:", err)
 		}
-
 	}
 }
 
@@ -65,7 +74,13 @@ func main() {
 
 	reader := bufio.NewScanner(os.Stdin)
 	if len(config.files) == 0 {
-		process(LinesFromStdin{reader: reader, index: 0})
+		source := new(LinesFromStdin)
+		source.init(reader)
+		process(source)
+	} else {
+		source := new(LinesFromFiles)
+		source.init(config.files)
+		process(source)
 	}
 
 	_, err := os.Stdin.Stat()
