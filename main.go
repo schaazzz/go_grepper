@@ -61,6 +61,30 @@ func parseArgs() Config {
 	return config
 }
 
+func printMatchedLine(flags *Flags, prefix string, index uint32, line string, start int, end int) (err error) {
+	prefixWriter := color.New(color.FgMagenta)
+	lineNumWriter := color.New(color.FgGreen)
+	matchWriter := color.New(color.FgRed)
+	semicolonWriter := color.New(color.FgCyan)
+
+	color.NoColor = !flags.useColor
+	if len(prefix) > 0 {
+		prefixWriter.Print(prefix)
+		semicolonWriter.Print(":")
+	}
+
+	if flags.printLineNums {
+		lineNumWriter.Print(index)
+		semicolonWriter.Print(":")
+	}
+
+	fmt.Print(line[:start])
+	matchWriter.Print(line[start:end])
+	fmt.Println(line[end:])
+
+	return nil
+}
+
 func process(source LineSource, flags *Flags, pattern string) {
 	grep, err := new(LineGrep).init(pattern, flags.ignoreCase)
 
@@ -120,30 +144,6 @@ func process(source LineSource, flags *Flags, pattern string) {
 	wg.Wait()
 }
 
-func printMatchedLine(flags *Flags, prefix string, index uint32, line string, start int, end int) (err error) {
-	prefixWriter := color.New(color.FgMagenta)
-	lineNumWriter := color.New(color.FgGreen)
-	matchWriter := color.New(color.FgRed)
-	semicolonWriter := color.New(color.FgCyan)
-
-	color.NoColor = !flags.useColor
-	if len(prefix) > 0 {
-		prefixWriter.Print(prefix)
-		semicolonWriter.Print(":")
-	}
-
-	if flags.printLineNums {
-		lineNumWriter.Print(index)
-		semicolonWriter.Print(":")
-	}
-
-	fmt.Print(line[:start])
-	matchWriter.Print(line[start:end])
-	fmt.Println(line[end:])
-
-	return nil
-}
-
 func main() {
 	config := parseArgs()
 
@@ -158,10 +158,5 @@ func main() {
 			new(LinesFromFiles).init(config.files),
 			&config.flags,
 			config.pattern)
-	}
-
-	_, err := os.Stdin.Stat()
-	if err != nil {
-		panic(err)
 	}
 }
